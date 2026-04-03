@@ -84,4 +84,111 @@ export class FinanceService {
         this.logger.info(`Soft deleting record`, { userId, recordId: id });
         return this.prisma.financialRecord.updateMany({ where: { id, userId, isDeleted: false }, data: { isDeleted: true } });
     }
+
+    async getSummary(userId: string) {
+        this.logger.debug(`Generating summary`, { userId });
+
+        // Parallel execution for better performance
+        const [
+            incomeResult,
+            expenseResult,
+            expenseCategoryData,
+            incomeCategoryData,
+            recentTransactions,
+        ] = await Promise.all([
+
+            // Total Income
+            this.prisma.financialRecord.aggregate({
+                where: {
+                    userId,
+                    type: 'INCOME',
+                    isDeleted: false,
+                },
+                _sum: { amount: true },
+            }),
+
+            // Total Expense
+            this.prisma.financialRecord.aggregate({
+                where: {
+                    userId,
+                    type: 'EXPENSE',
+                    isDeleted: false,
+                },
+                _sum: { amount: true },
+            }),
+
+            // Expense category breakdown (IMPORTANT FIX)
+            this.prisma.financialRecord.groupBy({
+                by: ['category'],
+                where: {
+                    userId,
+                    type: 'EXPENSE',
+                    isDeleted: false,
+                },
+                _sum: { amount: true },
+            }),
+
+            // Income category breakdown (BONUS)
+            this.prisma.financialRecord.groupBy({
+                by: ['category'],
+                where: {
+                    userId,
+                    type: 'INCOME',
+                    isDeleted: false,
+                },
+                _sum: { amount: true },
+            }),
+
+            // Recent transactions
+            this.prisma.financialRecord.findMany({
+                where: {
+                    userId,
+                    isDeleted: false,
+                },
+                orderBy: { createdAt: 'desc' },
+                take: 5,
+            }),
+        ]);
+
+        // Transform expense categories
+        const expenseBreakdown: Record<string, number> = {};
+        expenseCategoryData.forEach((item) => {
+            expenseBreakdown[item.category] = item._sum.amount || 0;
+        });
+
+        // Transform income categories
+        const incomeBreakdown: Record<string, number> = {};
+        incomeCategoryData.forEach((item) => {
+            incomeBreakdown[item.category] = item._sum.amount || 0;
+        });
+
+        // Top spending category (FIXED)
+        const topExpenseCategory = expenseCategoryData.length
+            ? expenseCategoryData.sort(
+                (a, b) => (b._sum.amount || 0) - (a._sum.amount || 0)
+            )[0].category
+            : null;
+
+        const totalIncome = incomeResult._sum.amount || 0;
+        const totalExpense = expenseResult._sum.amount || 0;
+
+        this.logger.debug(`Summary generated`, {
+            totalIncome,
+            totalExpense,
+        });
+
+        return {
+            totalIncome,
+            totalExpense,
+            netBalance: totalIncome - totalExpense,
+
+            // ✅ Better structured output
+            incomeByCategory: incomeBreakdown,
+            expenseByCategory: expenseBreakdown,
+
+            topSpendingCategory: topExpenseCategory,
+
+            recentTransactions,
+        };
+    }
 }

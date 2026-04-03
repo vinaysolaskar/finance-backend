@@ -28,6 +28,13 @@ export class FinanceController {
         return this.financeService.findAll(req.user.userId, query);
     }
 
+    @Get('summary')
+    @ApiOperation({ summary: 'Get financial summary (total income, total expenses, net balance)' })
+    async getSummary(@Req() req) {
+        const userId = req.user.userId;
+        return this.financeService.getSummary(userId);
+    }
+
     @Get(':id')
     @ApiOperation({ summary: 'Get single financial record by ID' })
     findOne(@Req() req, @Param('id', ParseUUIDPipe) id: string) {
@@ -42,7 +49,7 @@ export class FinanceController {
     }
 
     @Delete(':id')
-    @Roles('ADMIN')
+    @Roles('ADMIN', 'ANALYST')
     @ApiOperation({ summary: 'Soft delete a financial record' })
     softDelete(@Req() req, @Param('id', ParseUUIDPipe) id: string) {
         return this.financeService.softDelete(req.user.userId, id);
