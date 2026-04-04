@@ -47,6 +47,10 @@ export class AuthService {
             this.logger.warn(`Login failed: Invalid credentials`, { email: dto.email });
             throw new UnauthorizedException('Invalid credentials');
         }
+        if (!user.isActive) {
+            this.logger.warn(`Login failed: User deactivated`, { email: dto.email });
+            throw new UnauthorizedException('User is deactivated');
+        }
 
         const isMatch = await bcrypt.compare(dto.password, user.password);
         if (!isMatch) {

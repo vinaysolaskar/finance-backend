@@ -62,7 +62,7 @@ export class FinanceService {
 
     async update(userId: string, id: string, dto: UpdateFinanceDto) {
         const record = await this.prisma.financialRecord.findUnique({ where: { id } });
-        if (!record || record.isDeleted) throw new NotFoundException('Record not found or access denied');
+        if (!record || record.userId !== userId || record.isDeleted) throw new NotFoundException('Record not found or access denied');
 
         const isChanged = Object.entries(dto).some(([key, value]) => {
             if (key === 'date' && value) return new Date(value).getTime() !== record.date.getTime();
