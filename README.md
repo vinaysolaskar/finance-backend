@@ -1,98 +1,247 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+  # Finance Backend System
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A production-ready backend system built with **NestJS**, designed to handle authentication, user management, and financial data operations with scalability, security, and performance in mind.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## Live Deployment
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+**Base URL:**
+`https://finance-backend-ho41.onrender.com`
 
-## Project setup
+**API Docs (Swagger):**
+`https://finance-backend-ho41.onrender.com/api-docs`
 
-```bash
-$ npm install
+---
+
+## Tech Stack
+
+* **Framework:** NestJS
+* **Language:** TypeScript
+* **Database:** PostgreSQL (via Prisma ORM)
+* **Caching:** Redis (Upstash)
+* **Authentication:** JWT (Access Tokens)
+* **Rate Limiting:** @nestjs/throttler
+* **Logging:** Winston + Daily Rotate File
+* **Validation:** class-validator + class-transformer
+* **Deployment:** Render
+
+---
+
+## Architecture Overview
+
+The application follows a **modular architecture**:
+
+```
+src/
+│
+├── auth/          → Authentication (JWT login/signup)
+├── users/         → User management (roles, status)
+├── finance/       → Financial operations & summaries
+├── prisma/        → Database client (Prisma)
+├── redis/         → Redis caching layer
+├── common/        → Middleware, filters, utilities
+│
+├── app.module.ts  → Root module
+└── main.ts        → App bootstrap
 ```
 
-## Compile and run the project
+---
 
-```bash
-# development
-$ npm run start
+## Features
 
-# watch mode
-$ npm run start:dev
+### Authentication & Authorization
 
-# production mode
-$ npm run start:prod
+* JWT-based login/signup
+* Role-based access control (RBAC)
+* Secure password handling
+
+---
+
+### User Management
+
+* Fetch users
+* Update roles
+* Enable/disable user accounts
+
+---
+
+### Finance Module
+
+* Create financial records
+* Fetch all records
+* Get financial summary
+* Update & delete records
+
+---
+
+### Redis Caching
+
+* Caches finance summary
+* Reduces DB load
+* TTL-based invalidation
+
+---
+
+### Rate Limiting
+
+* Global API throttling
+* Prevents abuse & brute-force attacks
+* Configurable per route
+
+---
+
+### Logging System
+
+* Console logs (dev-friendly)
+* File logs with daily rotation
+* Structured logging using Winston
+
+---
+
+### Validation & Error Handling
+
+* Global validation pipe
+* Custom error formatting
+* Centralized exception filter
+
+---
+
+## Environment Variables
+
+Create a `.env` file:
+
+```
+PORT=3000
+
+DATABASE_URL=your_postgres_url
+
+JWT_SECRET=your_secret
+
+REDIS_URL=your_redis_url
 ```
 
-## Run tests
+---
+
+## Installation & Setup
 
 ```bash
-# unit tests
-$ npm run test
+# Install dependencies
+npm install
 
-# e2e tests
-$ npm run test:e2e
+# Generate Prisma client
+npx prisma generate
 
-# test coverage
-$ npm run test:cov
+# Run migrations
+npx prisma migrate deploy
+
+# Start development server
+npm run start:dev
 ```
 
-## Deployment
+---
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+## Production Build
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+npm run build
+npm run start:prod
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+---
 
-## Resources
+## API Testing
 
-Check out a few resources that may come in handy when working with NestJS:
+### 🔹 Login
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+```bash
+curl -X POST /auth/login
+```
 
-## Support
+### 🔹 Signup
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```bash
+POST /auth/signup
+```
 
-## Stay in touch
+### 🔹 Finance APIs
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+* `POST /finance`
+* `GET /finance`
+* `GET /finance/summary`
 
-## License
+---
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+## Key Design Decisions
+
+### 1. Modular Architecture
+
+Each domain (Auth, Users, Finance) is isolated → improves scalability & maintainability.
+
+---
+
+### 2. Prisma ORM
+
+* Type-safe queries
+* Easy migrations
+* Clean DB abstraction
+
+---
+
+### 3. Redis Integration
+
+* Used for caching heavy computations (finance summary)
+* Improves performance significantly
+
+---
+
+### 4. Rate Limiting Strategy
+
+* Global throttling using NestJS Throttler
+* Prevents API abuse
+* Can be extended to per-user limits
+
+---
+
+### 5. Logging Strategy
+
+* Winston used for structured logging
+* Logs stored in rotating files for observability
+
+---
+
+## Future Improvements
+
+* Refresh Tokens (Auth)
+* Advanced analytics for finance data
+* Smart cache invalidation strategies
+* Distributed rate limiting using Redis
+* Unit & E2E testing (Jest)
+* Docker containerization
+
+---
+
+## Challenges Faced
+
+* Handling Redis connection stability in production
+* Configuring rate limiting correctly with latest NestJS version
+
+---
+
+## Author
+
+**Vinay**
+:Backend Developer
+
+---
+
+## Final Notes
+
+This project demonstrates:
+
+* Clean architecture
+* Production-ready practices
+* Strong backend fundamentals
+* Real-world deployment experience
+
+---
