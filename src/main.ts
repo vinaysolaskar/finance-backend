@@ -1,15 +1,15 @@
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, Reflector } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import * as dotenv from 'dotenv';
-import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 import { ValidationPipe, HttpException, HttpStatus } from '@nestjs/common';
 import { WinstonModule } from 'nest-winston';
 import * as winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: WinstonModule.createLogger({
       transports: [
         new winston.transports.Console({
@@ -63,6 +63,9 @@ async function bootstrap() {
       },
     })
   );
+
+  app.set('trust proxy', 1);
+
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();

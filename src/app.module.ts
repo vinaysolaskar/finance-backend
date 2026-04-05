@@ -9,15 +9,23 @@ import { HttpLoggerMiddleware } from './common/middlewares/http-logger.middlewar
 import { LoggerModule } from './logger.module';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 import { RedisModule } from './redis/redis.module';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 
 @Module({
-  imports: [LoggerModule, AuthModule, UsersModule, FinanceModule, PrismaModule, RedisModule],
+  imports: [ThrottlerModule.forRoot([{
+    ttl: 60,
+    limit: 10,
+  }]), LoggerModule, AuthModule, UsersModule, FinanceModule, PrismaModule, RedisModule,],
   controllers: [AppController],
   providers: [
     AppService,
     {
       provide: 'APP_FILTER',
       useClass: GlobalExceptionFilter,
+    },
+    {
+      provide: 'APP_GUARD',
+      useClass: ThrottlerGuard,
     }
   ],
 })

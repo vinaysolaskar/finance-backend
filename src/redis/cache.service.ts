@@ -17,7 +17,6 @@ export class CacheService {
     private shouldLog(): boolean {
         const now = Date.now();
 
-        // log only once every 30 seconds
         if (now - this.lastErrorLogTime > 30000) {
             this.lastErrorLogTime = now;
             return true;
@@ -107,5 +106,9 @@ export class CacheService {
         } catch (err) {
             this.handleRedisError(err, 'DEL PATTERN', { pattern });
         }
+    }
+
+    getClient() {
+        return this.redis;
     }
 }
