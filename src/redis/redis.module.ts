@@ -11,7 +11,7 @@ dotenv.config();
             provide: 'REDIS_CLIENT',
             useFactory: () => {
                 const client = new Redis(process.env.REDIS_URL!, {
-                    maxRetriesPerRequest: 1,
+                    maxRetriesPerRequest: null,
                     retryStrategy: (times) => {
                         if (times > 3) return null;
                         return Math.min(times * 200, 1000);
@@ -19,6 +19,7 @@ dotenv.config();
                     reconnectOnError: () => false,
                     enableReadyCheck: false,
                     lazyConnect: true,
+                    tls: {},
                 });
 
                 client.on('connect', () => console.log('Redis connected'));
