@@ -4,17 +4,20 @@ import { CreateFinanceDto, UpdateFinanceDto } from './dto/finance.dto';
 import { Type } from './transaction-type.enum';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
+import { CacheService } from '../redis/cache.service';
 
 @Injectable()
 export class FinanceService {
     constructor(
         private prisma: PrismaService,
+        private cache: CacheService,
         @Inject(WINSTON_MODULE_PROVIDER)
         private readonly logger: Logger,
     ) { }
 
     async create(userId: string, dto: CreateFinanceDto) {
         this.logger.info(`Creating finance record`, { userId, dto });
+        await this.cache.del(`summary:user:${userId}`);
         const record = await this.prisma.financialRecord.create({
             data: { userId, ...dto, date: new Date(dto.date) },
         });
@@ -75,6 +78,7 @@ export class FinanceService {
         }
 
         this.logger.info(`Updating record`, { userId, recordId: id, dto });
+        await this.cache.del(`summary:user:${userId}`);
         const updated = await this.prisma.financialRecord.update({ where: { id }, data: { ...dto, ...(dto.date && { date: new Date(dto.date) }) } });
         this.logger.debug(`Updated record`, { updated });
         return updated;
@@ -82,11 +86,23 @@ export class FinanceService {
 
     async softDelete(userId: string, id: string) {
         this.logger.info(`Soft deleting record`, { userId, recordId: id });
+        await this.cache.del(`summary:user:${userId}`);
         return this.prisma.financialRecord.updateMany({ where: { id, userId, isDeleted: false }, data: { isDeleted: true } });
     }
 
     async getSummary(userId: string) {
         this.logger.debug(`Generating summary`, { userId });
+        const cacheKey = `summary:user:${userId}`;
+
+        // 1. CHECK CACHE
+        const cached = await this.cache.get(cacheKey);
+        if (cached) {
+            this.logger.debug(`Cache HIT`, { userId });
+            return cached;
+        }
+
+        this.logger.debug(`Cache MISS - generating summary`, { userId });
+        console.log(`Generating summary for user ${userId} - cache miss`);
 
         // Parallel execution for better performance
         const [
@@ -177,12 +193,11 @@ export class FinanceService {
             totalExpense,
         });
 
-        return {
+        const response = {
             totalIncome,
             totalExpense,
             netBalance: totalIncome - totalExpense,
 
-            // ✅ Better structured output
             incomeByCategory: incomeBreakdown,
             expenseByCategory: expenseBreakdown,
 
@@ -190,5 +205,9 @@ export class FinanceService {
 
             recentTransactions,
         };
+
+        await this.cache.set(cacheKey, response, 600);
+
+        return response;
     }
 }

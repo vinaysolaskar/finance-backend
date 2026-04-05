@@ -6,7 +6,7 @@ import DailyRotateFile from 'winston-daily-rotate-file';
 @Module({
     imports: [
         WinstonModule.forRoot({
-            level: 'info',
+            level: 'debug',
             format: winston.format.combine(
                 winston.format.timestamp(),
                 winston.format.errors({ stack: true }),
